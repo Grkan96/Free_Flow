@@ -1,0 +1,5 @@
+{
+  "name": "Runway Clear: Air Traffic Control",
+  "description": "A strategic puzzle game where you manage airport traffic. Clear the runway by guiding planes for takeoff in the correct order. Avoid collisions on the tarmac!",
+  "requestFramePermissions": []
+}

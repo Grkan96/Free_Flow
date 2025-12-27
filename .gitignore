@@ -1,0 +1,46 @@
+# Expo
+.expo/
+dist/
+web-build/
+
+# Dependencies
+node_modules/
+
+# Environment
+.env
+.env.local
+.env.production
+
+# Debug
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# macOS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Build
+*.log
+*.tgz
+.cache/
+
+# Android
+*.apk
+*.aab
+*.jks
+android/app/build/
+
+# iOS
+*.ipa
+ios/Pods/
+ios/build/
+
+# Misc
+*.pem

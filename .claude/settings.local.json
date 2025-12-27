@@ -1,0 +1,37 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx expo install:*)",
+      "Bash(npm start)",
+      "Bash(npm install)",
+      "Bash(npx expo start)",
+      "Bash(npm start:*)",
+      "Bash(taskkill:*)",
+      "Bash(npx expo start:*)",
+      "Bash(npm install:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(timeout /t 5 /nobreak)",
+      "Bash(powershell -Command \"Stop-Process -Id 9712 -Force\")",
+      "Bash(timeout /t 10 /nobreak)",
+      "Bash(powershell -Command \"Stop-Process -Id 17284 -Force\")",
+      "Bash(timeout 10 bash:*)",
+      "Bash(powershell -Command \"Stop-Process -Id 6720 -Force\")",
+      "Bash(powershell -Command \"Stop-Process -Id 12864 -Force\")",
+      "Bash(timeout /t 2 /nobreak)",
+      "Bash(powershell -Command \"Stop-Process -Id 17916 -Force\")",
+      "Bash(powershell:*)",
+      "Bash(node -e:*)",
+      "Bash(npx tsc --noEmit)",
+      "Bash(npx tsc:*)",
+      "Bash(timeout /t 3 /nobreak)",
+      "Bash(node test_diagonal.js:*)",
+      "Bash(node test_level_gen.js:*)",
+      "Bash(del test_diagonal.js test_level_gen.js)",
+      "Bash(git init:*)",
+      "Bash(git add:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
