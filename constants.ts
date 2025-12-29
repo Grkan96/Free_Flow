@@ -10,12 +10,37 @@ export const SCREEN_DIMENSIONS = {
   height: SCREEN_HEIGHT,
 };
 
-// Responsive cell size calculation
-export const calculateCellSize = (gridSize: number): number => {
-  const availableWidth = SCREEN_WIDTH - 64; // 32px padding on each side
-  const availableHeight = SCREEN_HEIGHT * 0.55; // Use 55% of screen for grid
-  const size = Math.min(availableWidth, availableHeight) / gridSize;
-  return Math.floor(size - 2); // 1px gap between cells
+// Responsive cell size calculation with optimization for large and rectangular grids
+export const calculateCellSize = (gridSize: number, gridRows?: number, gridCols?: number): number => {
+  // Use actual rows/cols if provided (rectangular grids), otherwise use gridSize (square grids)
+  const cols = gridCols || gridSize;
+  const isRectangular = gridRows !== undefined && gridCols !== undefined;
+
+  // Padding configuration
+  let padding: number;
+
+  if (isRectangular) {
+    // Rectangular grids: minimal padding for maximum space
+    padding = 40; // 20px on each side
+  } else if (gridSize >= 6) {
+    // Medium-large square grids: balanced padding
+    padding = 48; // 24px on each side
+  } else {
+    // Small square grids: normal padding
+    padding = 64; // 32px on each side
+  }
+
+  const availableWidth = SCREEN_WIDTH - padding;
+
+  // CRITICAL: For rectangular grids, calculate size ONLY based on width
+  // This ensures cells are perfect squares (equal width and height)
+  // The grid will extend vertically based on row count
+  const cellSizeByWidth = availableWidth / cols;
+
+  // Gap between cells
+  const gap = isRectangular ? 0.5 : (gridSize >= 6 ? 1 : 1.5);
+
+  return Math.floor(cellSizeByWidth - gap);
 };
 
 // Animation durations
@@ -209,103 +234,74 @@ export const getGeneratorConfig = (level: number): GeneratorConfig => {
   const difficulty = getDifficultyForLevel(level);
   const baseConfig = GENERATOR_CONFIGS[difficulty];
 
-  // Calculate progression within difficulty tier
-  // Each class gets progressively harder as you advance through chapters
-  const { class: classId, chapter } = levelToClassChapter(level);
-  const classInfo = CLASSES[classId];
-  const progressInClass = chapter / classInfo.totalChapters; // 0.0 to 1.0
 
   // ============================================
-  // GRID SIZE PROGRESSION - FAST START, LONGER ENDGAME
+  // GRID SIZE PROGRESSION - EXPONENTIAL GROWTH
   // ============================================
-  // Small grids (2x2-5x5): Short progression (5-10 levels each)
-  // Medium grids (6x6-8x8): Medium progression (20-30 levels each)
-  // Large grids (9x9-12x12): Long progression (30-40 levels each)
+  // Grid grows based on level ranges with exponential spacing
+  // Square grids until 7x7, then rectangular grids for better UX
   //
-  // Level 1-5:     2x2  (5 levels)   - Tutorial
-  // Level 6-15:    3x3  (10 levels)  - Easy
-  // Level 16-25:   4x4  (10 levels)  - Learning
-  // Level 26-40:   5x5  (15 levels)  - Getting comfortable
-  // Level 41-70:   6x6  (30 levels)  - Medium challenge
-  // Level 71-100:  7x7  (30 levels)  - Getting harder
-  // Level 101-130: 8x8  (30 levels)  - Hard
-  // Level 131-165: 9x9  (35 levels)  - Very hard
-  // Level 166-205: 10x10 (40 levels) - Expert
-  // Level 206-250: 11x11 (45 levels) - Master
-  // Level 251-300: 12x12 (50 levels) - Legendary
+  // Level 1-2:     2x2    (2 levels)   - Tutorial
+  // Level 3-6:     3x3    (4 levels)   - Easy
+  // Level 7-14:    4x4    (8 levels)   - Learning
+  // Level 15-30:   5x5    (16 levels)  - Getting comfortable
+  // Level 31-62:   6x6    (32 levels)  - Medium challenge
+  // Level 63-126:  7x7    (64 levels)  - Getting harder
+  // Level 127-254: 7x10   (128 levels) - Hard (rectangular)
+  // Level 255-300: 8x10   (46 levels)  - Expert (rectangular)
 
   let gridSize: number;
-  if (level <= 5) gridSize = 2;
-  else if (level <= 15) gridSize = 3;
-  else if (level <= 25) gridSize = 4;
-  else if (level <= 40) gridSize = 5;
-  else if (level <= 70) gridSize = 6;
-  else if (level <= 100) gridSize = 7;
-  else if (level <= 130) gridSize = 8;
-  else if (level <= 165) gridSize = 9;
-  else if (level <= 205) gridSize = 10;
-  else if (level <= 250) gridSize = 11;
-  else gridSize = 12;
+  let gridRows: number | undefined;
+  let gridCols: number | undefined;
 
-  // ============================================
-  // WIRE COUNT PROGRESSION
-  // ============================================
-  // Wire count scales with grid size and level
-  // Starts very simple, ends very complex
-
-  // Calculate level progress (0.0 to 1.0)
-  const levelProgress = (level - 1) / 299;
-
-  // CRITICAL: Wire count scales directly with grid size
-  // Larger grids = more wires for proportional difficulty
-  let wireCount: number;
-
-  // Base formula: gridSize * progression factor
-  // This ensures wire count grows with both grid size and level
-  const baseWires = Math.floor(gridSize * 0.4); // 40% of grid size as base
-  const progressionBonus = Math.floor(gridSize * levelProgress * 0.6); // Up to 60% more based on level
-
-  wireCount = baseWires + progressionBonus;
-
-  // Grid-specific adjustments
-  if (gridSize === 2) {
-    wireCount = 1; // 2x2: Always 1 wire (simplest)
-  } else if (gridSize === 3) {
-    wireCount = 1 + Math.floor(levelProgress * 1); // 3x3: 1-2 wires
-  } else if (gridSize === 4) {
-    wireCount = 2 + Math.floor(levelProgress * 2); // 4x4: 2-4 wires
-  } else if (gridSize === 5) {
-    wireCount = 2 + Math.floor(levelProgress * 3); // 5x5: 2-5 wires
-  } else if (gridSize === 6) {
-    wireCount = 3 + Math.floor(levelProgress * 4); // 6x6: 3-7 wires
-  } else if (gridSize === 7) {
-    wireCount = 4 + Math.floor(levelProgress * 5); // 7x7: 4-9 wires
-  } else if (gridSize === 8) {
-    wireCount = 5 + Math.floor(levelProgress * 7); // 8x8: 5-12 wires
-  } else if (gridSize === 9) {
-    wireCount = 6 + Math.floor(levelProgress * 9); // 9x9: 6-15 wires
-  } else if (gridSize === 10) {
-    wireCount = 8 + Math.floor(levelProgress * 12); // 10x10: 8-20 wires
-  } else if (gridSize === 11) {
-    wireCount = 10 + Math.floor(levelProgress * 15); // 11x11: 10-25 wires
+  if (level <= 2) {
+    gridSize = 2;
+  } else if (level <= 6) {
+    gridSize = 3;
+  } else if (level <= 14) {
+    gridSize = 4;
+  } else if (level <= 30) {
+    gridSize = 5;
+  } else if (level <= 62) {
+    gridSize = 6;
+  } else if (level <= 126) {
+    gridSize = 7;
+  } else if (level <= 254) {
+    // 7x10 rectangular grid
+    gridSize = 7; // Keep for compatibility
+    gridRows = 10;
+    gridCols = 7;
   } else {
-    wireCount = 12 + Math.floor(levelProgress * 18); // 12x12: 12-30 wires
+    // 8x10 rectangular grid
+    gridSize = 8; // Keep for compatibility
+    gridRows = 10;
+    gridCols = 8;
   }
 
-  // SAFETY: Ensure minimum wire count (at least 1)
-  const minWiresForGrid = Math.max(1, Math.floor(gridSize * 0.3));
-  wireCount = Math.max(wireCount, minWiresForGrid);
+  // ============================================
+  // WIRE COUNT PROGRESSION - GRID-BASED FORMULA
+  // ============================================
+  // Wire count (port pairs) scales with grid columns (width)
+  // Formula: wireCount = ceil(cols / 2)
+  // This ensures balanced difficulty and solvable puzzles
+  //
+  // 2x2 grid   -> 1 wire pair (2 ports)
+  // 3x3 grid   -> 2 wire pairs (4 ports)
+  // 4x4 grid   -> 2 wire pairs (4 ports)
+  // 5x5 grid   -> 3 wire pairs (6 ports)
+  // 6x6 grid   -> 3 wire pairs (6 ports)
+  // 7x7 grid   -> 4 wire pairs (8 ports)
+  // 7x10 grid  -> 4 wire pairs (8 ports)
+  // 8x10 grid  -> 4 wire pairs (8 ports)
 
-  // CRITICAL: Cap wire count to prevent deadlocks and confusion
-  // REDUCED: gridSize² / 10 (very conservative to avoid player confusion)
-  // Too many wires = player gets confused and creates deadlocks
-  // Fewer wires = easier to visualize and solve
-  const maxWiresForGrid = Math.max(2, Math.floor((gridSize * gridSize) / 10));
-  wireCount = Math.min(wireCount, maxWiresForGrid);
+  const cols = gridCols || gridSize;
+  const wireCount = Math.ceil(cols / 2);
 
   return {
     ...baseConfig,
     gridSize,
+    gridRows,
+    gridCols,
     wireCount,
   };
 };
