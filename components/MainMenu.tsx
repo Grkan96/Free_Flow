@@ -5,6 +5,7 @@ import { TOTAL_LEVELS, AVATARS, CLASSES } from '../constants';
 import { UserProfile } from '../types';
 import { useTheme } from '../contexts/ThemeContext';
 import { useTranslation } from '../contexts/LanguageContext';
+import { AdBanner } from './AdBanner';
 
 interface MainMenuProps {
   onStart: () => void;
@@ -131,6 +132,9 @@ const MainMenu: React.FC<MainMenuProps> = ({
             <Text style={styles.navIcon}>⚙️</Text>
           </TouchableOpacity>
         </View>
+
+        {/* AdMob Banner */}
+        <AdBanner position="bottom" />
       </View>
     </View>
   );

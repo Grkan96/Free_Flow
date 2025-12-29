@@ -35,6 +35,7 @@ import MessagesModal from './components/MessagesModal';
 import PauseMenu from './components/PauseMenu';
 // Class selection removed - using progressive difficulty
 import LevelCompleteModal from './components/LevelCompleteModal';
+import { AdBanner } from './components/AdBanner';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { LanguageProvider, useTranslation } from './contexts/LanguageContext';
 
@@ -1402,6 +1403,8 @@ const App: React.FC = () => {
                 </Text>
               )}
             </View>
+            {/* AdMob Banner */}
+            <AdBanner position="bottom" />
           </View>
         </>
       )}

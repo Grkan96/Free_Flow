@@ -11,7 +11,9 @@
       "resizeMode": "contain",
       "backgroundColor": "#000000"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.yourcompany.runwayclear"
@@ -22,6 +24,7 @@
         "backgroundColor": "#000000"
       },
       "package": "com.yourcompany.runwayclear"
-    }
+    },
+    "plugins": []
   }
 }

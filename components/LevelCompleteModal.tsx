@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
 import { useTranslation } from '../contexts/LanguageContext';
+import { AdBanner } from './AdBanner';
 
 interface LevelCompleteModalProps {
   visible: boolean;
@@ -177,6 +178,9 @@ const LevelCompleteModal: React.FC<LevelCompleteModalProps> = ({
               </TouchableOpacity>
             </View>
           </View>
+
+          {/* AdMob Banner */}
+          <AdBanner position="bottom" />
         </Animated.View>
       </Animated.View>
     </Modal>
