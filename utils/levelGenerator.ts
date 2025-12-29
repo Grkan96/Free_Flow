@@ -76,7 +76,11 @@ interface RegionCell {
  * Uses seeded random generation for consistent but varied levels
  */
 export const generateLevel = (config: GeneratorConfig, levelNumber: number = 1): LevelData => {
-  const { gridSize, wireCount, difficulty } = config;
+  const { gridSize, gridRows, gridCols, wireCount, difficulty } = config;
+
+  // Support both square and rectangular grids
+  const rows = gridRows || gridSize;
+  const cols = gridCols || gridSize;
 
   // Initialize seeded random for this level
   // Each level gets a unique seed based on level number
@@ -95,11 +99,11 @@ export const generateLevel = (config: GeneratorConfig, levelNumber: number = 1):
         const attemptSeed = baseSeed ^ (attempt * 2654435761) ^ ((attempt << 7) | (attempt >> 25));
         seedRandom(attemptSeed);
 
-        // Step 1: Generate complete solution
-        const solution = generateCompleteSolution(gridSize, wireCount);
+        // Step 1: Generate complete solution (use rows and cols for rectangular grids)
+        const solution = generateCompleteSolution(rows, cols, wireCount);
 
         // Step 2: Extract wire endpoints
-        const wires = extractWiresFromSolution(solution, gridSize);
+        const wires = extractWiresFromSolution(solution, rows, cols);
 
         // Step 3: NO OBSTACLES - They break 100% fill requirement!
         // Obstacles are DISABLED because they make it impossible to fill 100% of grid
@@ -108,11 +112,11 @@ export const generateLevel = (config: GeneratorConfig, levelNumber: number = 1):
 
         // DEBUG: Detailed generation logging
         const totalSolutionCells = wires.reduce((sum, w) => sum + (w.solutionPath?.length || 0), 0);
-        const expectedCells = gridSize * gridSize;
+        const expectedCells = rows * cols;
         const cellCoverage = ((totalSolutionCells / expectedCells) * 100).toFixed(1);
 
         console.log(`\n[Level ${levelNumber}] Generation Complete:`);
-        console.log(`  Grid: ${gridSize}x${gridSize} = ${expectedCells} cells`);
+        console.log(`  Grid: ${cols}x${rows} = ${expectedCells} cells`);
         console.log(`  Wires: ${wires.length}`);
         console.log(`  Total solution cells: ${totalSolutionCells}`);
         console.log(`  Coverage: ${cellCoverage}%`);
@@ -128,7 +132,7 @@ export const generateLevel = (config: GeneratorConfig, levelNumber: number = 1):
         });
 
         // Step 4: Validate basic puzzle structure
-        if (!validatePuzzle(wires, gridSize)) {
+        if (!validatePuzzle(wires, rows, cols)) {
           throw new Error('Basic validation failed');
         }
 
@@ -152,6 +156,8 @@ export const generateLevel = (config: GeneratorConfig, levelNumber: number = 1):
           id: levelNumber, // Use level number as ID for consistency
           config: {
             size: gridSize,
+            rows: gridRows,
+            cols: gridCols,
             wireCount: wires.length,
             gridShape: 'square' as const,
             difficulty,
@@ -188,13 +194,14 @@ export const generateLevel = (config: GeneratorConfig, levelNumber: number = 1):
  * CRITICAL: All cells MUST be covered - this is the core game mechanic
  */
 const generateCompleteSolution = (
-  gridSize: number,
+  rows: number,
+  cols: number,
   wireCount: number
 ): RegionCell[] => {
-  const totalCells = gridSize * gridSize;
+  const totalCells = rows * cols;
 
   // Step 1: Generate a COMPLETE Hamiltonian path covering ALL cells
-  const completePath = generateCompleteHamiltonianPath(gridSize);
+  const completePath = generateCompleteHamiltonianPath(rows, cols);
 
   // VALIDATION: Must cover entire grid
   if (completePath.length !== totalCells) {
@@ -254,15 +261,16 @@ const generateCompleteSolution = (
 /**
  * Generate a complete Hamiltonian path that visits ALL cells in the grid
  * Uses MULTIPLE different algorithms for MAXIMUM variety
+ * Supports both square and rectangular grids
  */
-const generateCompleteHamiltonianPath = (gridSize: number): Coordinate[] => {
-  const totalCells = gridSize * gridSize;
+const generateCompleteHamiltonianPath = (rows: number, cols: number): Coordinate[] => {
+  const totalCells = rows * cols;
 
   // Seçilebilecek farklı path generation stratejileri
   // CRITICAL: Only use predictable strategies that are easy for players to solve
   // RandomWalk creates deadlocks - DISABLED permanently
   // Diagonal creates partition errors (157/121, 259/121 etc.) - DISABLED
-  // Using 3 proven strategies that NEVER fail
+  // Using 3 proven strategies that NEVER fail (all work with rectangular grids)
   const strategies = ['zigzag', 'spiral', 'snake'];
 
   // Rastgele bir strateji seç
@@ -273,17 +281,14 @@ const generateCompleteHamiltonianPath = (gridSize: number): Coordinate[] => {
 
   switch (selectedStrategy) {
     case 'spiral':
-      path = generateSpiralPath(gridSize);
+      path = generateSpiralPath(rows, cols);
       break;
     case 'snake':
-      path = generateSnakePath(gridSize);
-      break;
-    case 'diagonal':
-      path = generateDiagonalPath(gridSize);
+      path = generateSnakePath(rows, cols);
       break;
     case 'zigzag':
     default:
-      path = generateRandomizedZigzag(gridSize);
+      path = generateRandomizedZigzag(rows, cols);
       break;
   }
 
@@ -302,7 +307,7 @@ const generateCompleteHamiltonianPath = (gridSize: number): Coordinate[] => {
 
   if (uniquePath.length !== totalCells) {
     console.warn(`[${selectedStrategy}] Path incomplete or has duplicates: ${path.length} raw, ${uniquePath.length} unique, expected ${totalCells}. Falling back to zigzag.`);
-    path = generateRandomizedZigzag(gridSize);
+    path = generateRandomizedZigzag(rows, cols);
   } else {
     path = uniquePath;
   }
@@ -367,7 +372,7 @@ const generateRandomHamiltonianPath = (gridSize: number): Coordinate[] => {
  * Generate a randomized zigzag path - fast and varied
  * Randomizes: starting corner, direction (horizontal/vertical), and zigzag orientation
  */
-const generateRandomizedZigzag = (gridSize: number): Coordinate[] => {
+const generateRandomizedZigzag = (rows: number, cols: number): Coordinate[] => {
   const path: Coordinate[] = [];
 
   // Random choices for variety using seeded random
@@ -378,34 +383,34 @@ const generateRandomizedZigzag = (gridSize: number): Coordinate[] => {
 
   if (horizontal) {
     // Horizontal zigzag (row by row)
-    for (let row = 0; row < gridSize; row++) {
-      const actualRow = startFromTop ? row : gridSize - 1 - row;
+    for (let row = 0; row < rows; row++) {
+      const actualRow = startFromTop ? row : rows - 1 - row;
       const shouldReverse = reverseZigzag ? row % 2 === 1 : row % 2 === 0;
       const goingRight = startFromLeft ? !shouldReverse : shouldReverse;
 
       if (goingRight) {
-        for (let col = 0; col < gridSize; col++) {
+        for (let col = 0; col < cols; col++) {
           path.push({ row: actualRow, col });
         }
       } else {
-        for (let col = gridSize - 1; col >= 0; col--) {
+        for (let col = cols - 1; col >= 0; col--) {
           path.push({ row: actualRow, col });
         }
       }
     }
   } else {
     // Vertical zigzag (column by column)
-    for (let col = 0; col < gridSize; col++) {
-      const actualCol = startFromLeft ? col : gridSize - 1 - col;
+    for (let col = 0; col < cols; col++) {
+      const actualCol = startFromLeft ? col : cols - 1 - col;
       const shouldReverse = reverseZigzag ? col % 2 === 1 : col % 2 === 0;
       const goingDown = startFromTop ? !shouldReverse : shouldReverse;
 
       if (goingDown) {
-        for (let row = 0; row < gridSize; row++) {
+        for (let row = 0; row < rows; row++) {
           path.push({ row, col: actualCol });
         }
       } else {
-        for (let row = gridSize - 1; row >= 0; row--) {
+        for (let row = rows - 1; row >= 0; row--) {
           path.push({ row, col: actualCol });
         }
       }
@@ -442,13 +447,13 @@ const generateZigzagPath = (gridSize: number): Coordinate[] => {
  * Generate SPIRAL path - starts from outside/inside and spirals in/out
  * Çok farklı görsel pattern oluşturur!
  */
-const generateSpiralPath = (gridSize: number): Coordinate[] => {
+const generateSpiralPath = (rows: number, cols: number): Coordinate[] => {
   const path: Coordinate[] = [];
   const spiralInward = getRandom() < 0.5; // true = dıştan içe, false = içten dışa
 
   if (spiralInward) {
     // Dıştan içe spiral
-    let top = 0, bottom = gridSize - 1, left = 0, right = gridSize - 1;
+    let top = 0, bottom = rows - 1, left = 0, right = cols - 1;
 
     while (top <= bottom && left <= right) {
       // Sağa git (top row)
@@ -485,7 +490,7 @@ const generateSpiralPath = (gridSize: number): Coordinate[] => {
     path.reverse(); // Boş array olduğu için bir şey yapmaz
 
     // Tekrar hesapla ama reverse order'da
-    let top = 0, bottom = gridSize - 1, left = 0, right = gridSize - 1;
+    let top = 0, bottom = rows - 1, left = 0, right = cols - 1;
     const tempPath: Coordinate[] = [];
 
     while (top <= bottom && left <= right) {
@@ -522,10 +527,11 @@ const generateSpiralPath = (gridSize: number): Coordinate[] => {
 
 /**
  * Generate SNAKE path - farklı yönlerde kıvrımlı yılan gibi
+ * Supports rectangular grids
  */
-const generateSnakePath = (gridSize: number): Coordinate[] => {
+const generateSnakePath = (rows: number, cols: number): Coordinate[] => {
   const path: Coordinate[] = [];
-  const segmentSize = getRandomInt(2, Math.max(2, Math.floor(gridSize / 2)));
+  const segmentSize = getRandomInt(2, Math.max(2, Math.floor(rows / 2)));
   const horizontal = getRandom() < 0.5;
 
   if (horizontal) {
@@ -533,16 +539,16 @@ const generateSnakePath = (gridSize: number): Coordinate[] => {
     let currentRow = 0;
     let goingRight = true;
 
-    while (currentRow < gridSize) {
-      const endRow = Math.min(currentRow + segmentSize, gridSize);
+    while (currentRow < rows) {
+      const endRow = Math.min(currentRow + segmentSize, rows);
 
       for (let row = currentRow; row < endRow; row++) {
         if (goingRight) {
-          for (let col = 0; col < gridSize; col++) {
+          for (let col = 0; col < cols; col++) {
             path.push({ row, col });
           }
         } else {
-          for (let col = gridSize - 1; col >= 0; col--) {
+          for (let col = cols - 1; col >= 0; col--) {
             path.push({ row, col });
           }
         }
@@ -556,16 +562,16 @@ const generateSnakePath = (gridSize: number): Coordinate[] => {
     let currentCol = 0;
     let goingDown = true;
 
-    while (currentCol < gridSize) {
-      const endCol = Math.min(currentCol + segmentSize, gridSize);
+    while (currentCol < cols) {
+      const endCol = Math.min(currentCol + segmentSize, cols);
 
       for (let col = currentCol; col < endCol; col++) {
         if (goingDown) {
-          for (let row = 0; row < gridSize; row++) {
+          for (let row = 0; row < rows; row++) {
             path.push({ row, col });
           }
         } else {
-          for (let row = gridSize - 1; row >= 0; row--) {
+          for (let row = rows - 1; row >= 0; row--) {
             path.push({ row, col });
           }
         }
@@ -792,7 +798,8 @@ const partitionPathIntoSegments = (
  */
 const extractWiresFromSolution = (
   solution: RegionCell[],
-  gridSize?: number
+  rows?: number,
+  cols?: number
 ): Array<{ color: WireColor; start: Coordinate; end: Coordinate; solutionPath?: Coordinate[] }> => {
   // Group cells by wireId
   const wireMap = new Map<number, RegionCell[]>();
@@ -881,7 +888,7 @@ const extractWiresFromSolution = (
   }
 
   // CRITICAL VALIDATION: Solution paths must cover ALL cells exactly once
-  if (gridSize) {
+  if (rows && cols) {
     const allSolutionCells = new Set<string>();
     wires.forEach(wire => {
       wire.solutionPath?.forEach(coord => {
@@ -893,8 +900,8 @@ const extractWiresFromSolution = (
       });
     });
 
-    // Total solution cells must equal grid size
-    const expectedCells = gridSize * gridSize;
+    // Total solution cells must equal grid dimensions (rows * cols for rectangular grids)
+    const expectedCells = rows * cols;
     if (allSolutionCells.size !== expectedCells) {
       throw new Error(`Solution paths don't cover all cells: ${allSolutionCells.size}/${expectedCells} cells`);
     }
@@ -1059,15 +1066,16 @@ const generateObstacles = (
  */
 const validatePuzzle = (
   wires: Array<{ color: WireColor; start: Coordinate; end: Coordinate; solutionPath?: Coordinate[] }>,
-  gridSize: number
+  rows: number,
+  cols: number
 ): boolean => {
   // Check 1: All wires have valid endpoints
   for (const wire of wires) {
     if (
-      wire.start.row < 0 || wire.start.row >= gridSize ||
-      wire.start.col < 0 || wire.start.col >= gridSize ||
-      wire.end.row < 0 || wire.end.row >= gridSize ||
-      wire.end.col < 0 || wire.end.col >= gridSize
+      wire.start.row < 0 || wire.start.row >= rows ||
+      wire.start.col < 0 || wire.start.col >= cols ||
+      wire.end.row < 0 || wire.end.row >= rows ||
+      wire.end.col < 0 || wire.end.col >= cols
     ) {
       return false;
     }
