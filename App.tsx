@@ -19,7 +19,7 @@ import {
 } from './utils/wireEngine';
 import { levelCache } from './utils/levelCache';
 import { loadSettings, saveSettings } from './utils/settingsStorage';
-import { loadUserProfile, saveUserProfile, createNewProfile, updateProfile, unlockClass } from './utils/userProfileStorage';
+import { loadUserProfile, saveUserProfile, createNewProfile, updateProfile, unlockClass, deleteProfile } from './utils/userProfileStorage';
 import { loadLevelStats, saveLevelStats, loadAllLevelStats } from './utils/levelStatsStorage';
 import { loadGlobalStats, saveGlobalStats, incrementStats, updateStreak, createDefaultGlobalStats } from './utils/globalStatsStorage';
 import WireCell from './components/WireCell';
@@ -174,10 +174,13 @@ const App: React.FC = () => {
         level: levelNum,
       });
 
+      // Get grid size (all square grids)
+      const gridSize = levelData.grid.length;
+
       setGameState({
         level: levelNum,
         grid: levelData.grid,
-        gridSize: levelData.grid.length,
+        gridSize,
         gridShape: 'square',
         wires: levelData.wires,
         status: 'playing',
@@ -203,10 +206,13 @@ const App: React.FC = () => {
           level: 1,
         });
 
+        // Get grid size (all square grids)
+        const gridSize = fallback.grid.length;
+
         setGameState({
           level: 1,
           grid: fallback.grid,
-          gridSize: fallback.grid.length,
+          gridSize,
           gridShape: 'square',
           wires: fallback.wires,
           status: 'playing',
@@ -334,7 +340,7 @@ const App: React.FC = () => {
 
   const handleDeleteAccount = useCallback(async () => {
     try {
-      await saveUserProfile({ ...userProfile!, userId: '', username: '', avatarId: 0, createdAt: 0, lastPlayedAt: 0, currentLevel: 1, totalPlayTime: 0, version: '1.0.0' });
+      await deleteProfile();
       setUserProfile(null);
       setGlobalStats(null);
       setLevelStatsMap(new Map());
@@ -342,7 +348,7 @@ const App: React.FC = () => {
     } catch (error) {
       console.error('Failed to delete account:', error);
     }
-  }, [userProfile]);
+  }, []);
 
   // Stats handlers
   const handleShowStats = useCallback(async () => {
@@ -978,12 +984,44 @@ const App: React.FC = () => {
         gridFilled: gameState.gridFilled,
       }]);
 
-      // HINT: Apply ONLY the next incomplete wire's solution path
-      // This helps players learn step by step, not solve entire puzzle
       let currentGrid = gameState.grid;
       const updatedWires = [...gameState.wires];
 
-      // Find the first incomplete wire
+      // Check if any wire has a path (user has connected some ports)
+      const hasAnyConnection = updatedWires.some(wire => wire.path.length > 0);
+
+      if (hasAnyConnection) {
+        // User has made some connections - check for incorrect ones
+        console.log('[Hint] User has connections - checking for incorrect paths');
+
+        for (let i = 0; i < updatedWires.length; i++) {
+          const wire = updatedWires[i];
+          const solutionPath = gameState.solution[i];
+
+          // Skip if wire has no path
+          if (wire.path.length === 0) continue;
+
+          // Check if current path matches solution
+          const isPathCorrect = wire.path.length === solutionPath.length &&
+            wire.path.every((coord, idx) =>
+              coord.row === solutionPath[idx].row &&
+              coord.col === solutionPath[idx].col
+            );
+
+          if (!isPathCorrect) {
+            // Path is incorrect - clear it
+            console.log(`[Hint] Clearing incorrect path for wire ${i}`);
+            currentGrid = clearWirePath(currentGrid, wire);
+            updatedWires[i] = {
+              ...wire,
+              path: [],
+              isComplete: false,
+            };
+          }
+        }
+      }
+
+      // Find the first incomplete wire to solve
       let nextIncompleteIndex = -1;
       for (let i = 0; i < updatedWires.length; i++) {
         if (!updatedWires[i].isComplete) {
@@ -995,6 +1033,12 @@ const App: React.FC = () => {
       // If no incomplete wire found, do nothing
       if (nextIncompleteIndex === -1) {
         console.log('[Hint] All wires already complete');
+        setGameState(prev => ({
+          ...prev,
+          grid: currentGrid,
+          wires: updatedWires,
+          gridFilled: calculateGridFilled(currentGrid),
+        }));
         return;
       }
 
@@ -1067,6 +1111,10 @@ const App: React.FC = () => {
   const gridSize = Math.min(width - 64, height * 0.55);
   const cellSize = calculateCellSize(gameState.gridSize);
 
+  // Grid dimensions (all square grids now)
+  const gridRows = gameState.gridSize;
+  const gridCols = gameState.gridSize;
+
   // Helper: Convert touch coordinates to grid cell position
   const getCellFromTouch = useCallback((evt: any) => {
     // Get absolute touch coordinates on screen
@@ -1082,7 +1130,7 @@ const App: React.FC = () => {
     const touchX = pageX - layout.x;
     const touchY = pageY - layout.y;
 
-    // Calculate actual cell size from layout
+    // Calculate actual cell size from layout (all square grids)
     const actualCellWidth = layout.width / gameState.gridSize;
     const actualCellHeight = layout.height / gameState.gridSize;
 

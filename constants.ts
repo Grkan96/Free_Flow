@@ -10,35 +10,30 @@ export const SCREEN_DIMENSIONS = {
   height: SCREEN_HEIGHT,
 };
 
-// Responsive cell size calculation with optimization for large and rectangular grids
-export const calculateCellSize = (gridSize: number, gridRows?: number, gridCols?: number): number => {
-  // Use actual rows/cols if provided (rectangular grids), otherwise use gridSize (square grids)
-  const cols = gridCols || gridSize;
-  const isRectangular = gridRows !== undefined && gridCols !== undefined;
-
-  // Padding configuration
+// Responsive cell size calculation with optimization for large grids
+export const calculateCellSize = (gridSize: number): number => {
+  // Padding configuration based on grid size
   let padding: number;
 
-  if (isRectangular) {
-    // Rectangular grids: minimal padding for maximum space
+  if (gridSize >= 8) {
+    // Very large grids: minimal padding
     padding = 40; // 20px on each side
   } else if (gridSize >= 6) {
-    // Medium-large square grids: balanced padding
+    // Medium-large grids: balanced padding
     padding = 48; // 24px on each side
   } else {
-    // Small square grids: normal padding
+    // Small grids: normal padding
     padding = 64; // 32px on each side
   }
 
   const availableWidth = SCREEN_WIDTH - padding;
 
-  // CRITICAL: Calculate size based on width to ensure PERFECT SQUARE CELLS
-  // All cells (in all grids - square or rectangular) will be equal squares
-  // The grid extends vertically based on row count
-  const cellSize = availableWidth / cols;
+  // Calculate cell size based on grid width
+  // All cells are perfect squares
+  const cellSize = availableWidth / gridSize;
 
-  // Gap between cells
-  const gap = isRectangular ? 0.5 : (gridSize >= 6 ? 1 : 1.5);
+  // Gap between cells (smaller for larger grids)
+  const gap = gridSize >= 8 ? 0.5 : (gridSize >= 6 ? 1 : 1.5);
 
   // Return cell size minus gap (cell size is ALWAYS square)
   return Math.floor(cellSize - gap);
@@ -240,7 +235,7 @@ export const getGeneratorConfig = (level: number): GeneratorConfig => {
   // GRID SIZE PROGRESSION - EXPONENTIAL GROWTH
   // ============================================
   // Grid grows based on level ranges with exponential spacing
-  // Square grids until 7x7, then rectangular grids for better UX
+  // All square grids from 2x2 to 9x9
   //
   // Level 1-2:     2x2    (2 levels)   - Tutorial
   // Level 3-6:     3x3    (4 levels)   - Easy
@@ -248,12 +243,10 @@ export const getGeneratorConfig = (level: number): GeneratorConfig => {
   // Level 15-30:   5x5    (16 levels)  - Getting comfortable
   // Level 31-62:   6x6    (32 levels)  - Medium challenge
   // Level 63-126:  7x7    (64 levels)  - Getting harder
-  // Level 127-254: 7x10   (128 levels) - Hard (rectangular)
-  // Level 255-300: 8x10   (46 levels)  - Expert (rectangular)
+  // Level 127-254: 8x8    (128 levels) - Hard
+  // Level 255-300: 9x9    (46 levels)  - Expert
 
   let gridSize: number;
-  let gridRows: number | undefined;
-  let gridCols: number | undefined;
 
   if (level <= 2) {
     gridSize = 2;
@@ -268,22 +261,16 @@ export const getGeneratorConfig = (level: number): GeneratorConfig => {
   } else if (level <= 126) {
     gridSize = 7;
   } else if (level <= 254) {
-    // 7x10 rectangular grid
-    gridSize = 7; // Keep for compatibility
-    gridRows = 10;
-    gridCols = 7;
+    gridSize = 8;
   } else {
-    // 8x10 rectangular grid
-    gridSize = 8; // Keep for compatibility
-    gridRows = 10;
-    gridCols = 8;
+    gridSize = 9;
   }
 
   // ============================================
   // WIRE COUNT PROGRESSION - GRID-BASED FORMULA
   // ============================================
-  // Wire count (port pairs) scales with grid columns (width)
-  // Formula: wireCount = ceil(cols / 2)
+  // Wire count (port pairs) scales with grid size
+  // Formula: wireCount = ceil(gridSize / 2)
   // This ensures balanced difficulty and solvable puzzles
   //
   // 2x2 grid   -> 1 wire pair (2 ports)
@@ -292,17 +279,14 @@ export const getGeneratorConfig = (level: number): GeneratorConfig => {
   // 5x5 grid   -> 3 wire pairs (6 ports)
   // 6x6 grid   -> 3 wire pairs (6 ports)
   // 7x7 grid   -> 4 wire pairs (8 ports)
-  // 7x10 grid  -> 4 wire pairs (8 ports)
-  // 8x10 grid  -> 4 wire pairs (8 ports)
+  // 8x8 grid   -> 4 wire pairs (8 ports)
+  // 9x9 grid   -> 5 wire pairs (10 ports)
 
-  const cols = gridCols || gridSize;
-  const wireCount = Math.ceil(cols / 2);
+  const wireCount = Math.ceil(gridSize / 2);
 
   return {
     ...baseConfig,
     gridSize,
-    gridRows,
-    gridCols,
     wireCount,
   };
 };

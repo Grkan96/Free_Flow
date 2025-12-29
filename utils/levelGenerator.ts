@@ -76,11 +76,11 @@ interface RegionCell {
  * Uses seeded random generation for consistent but varied levels
  */
 export const generateLevel = (config: GeneratorConfig, levelNumber: number = 1): LevelData => {
-  const { gridSize, gridRows, gridCols, wireCount, difficulty } = config;
+  const { gridSize, wireCount, difficulty } = config;
 
-  // Support both square and rectangular grids
-  const rows = gridRows || gridSize;
-  const cols = gridCols || gridSize;
+  // All square grids now
+  const rows = gridSize;
+  const cols = gridSize;
 
   // Initialize seeded random for this level
   // Each level gets a unique seed based on level number
@@ -156,8 +156,6 @@ export const generateLevel = (config: GeneratorConfig, levelNumber: number = 1):
           id: levelNumber, // Use level number as ID for consistency
           config: {
             size: gridSize,
-            rows: gridRows,
-            cols: gridCols,
             wireCount: wires.length,
             gridShape: 'square' as const,
             difficulty,

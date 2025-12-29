@@ -73,8 +73,8 @@ export type GameStatus = 'menu' | 'playing' | 'won' | 'generating';
 export interface GameState {
   level: number;
   grid: Grid;
-  gridSize: number;
-  gridShape: GridShape; // NEW: Shape of the grid
+  gridSize: number; // Grid size (all square grids: rows = cols = gridSize)
+  gridShape: GridShape; // Shape of the grid (always 'square' now)
   wires: Wire[];
   status: GameStatus;
   moves: number;
@@ -93,9 +93,9 @@ export interface GameState {
 
 // Level configuration
 export interface LevelConfig {
-  size: number;
+  size: number; // Grid size (all square grids: rows = cols = size)
   wireCount: number;
-  gridShape: GridShape; // NEW: Grid shape
+  gridShape: GridShape; // Grid shape (always 'square' now)
   difficulty: 'easy' | 'medium' | 'hard' | 'expert';
   optimalMoves: number; // Minimum moves needed for perfect bonus
 }
@@ -115,7 +115,7 @@ export interface LevelData {
 
 // Generator configuration
 export interface GeneratorConfig {
-  gridSize: number;
+  gridSize: number; // Grid size (all square grids: rows = cols = gridSize)
   wireCount: number;
   difficulty: 'easy' | 'medium' | 'hard' | 'expert';
   minPathLength?: number;
