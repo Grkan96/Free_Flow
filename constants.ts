@@ -285,15 +285,15 @@ export const getGeneratorConfig = (level: number): GeneratorConfig => {
   // Wire count (port pairs) is randomized within a logical range for each grid size
   // This ensures variety while maintaining solvability
   //
-  // Grid size -> Min-Max wire pairs (ports)
-  // 2x2 grid   -> 1-1 wire pairs (2 ports)
+  // Grid size -> Min-Max wire pairs (total ports)
+  // 2x2 grid   -> 1 wire pair (2 ports)
   // 3x3 grid   -> 1-2 wire pairs (2-4 ports)
   // 4x4 grid   -> 2-3 wire pairs (4-6 ports)
-  // 5x5 grid   -> 2-4 wire pairs (4-8 ports)
-  // 6x6 grid   -> 3-5 wire pairs (6-10 ports)
-  // 7x7 grid   -> 3-6 wire pairs (6-12 ports)
-  // 8x8 grid   -> 4-7 wire pairs (8-14 ports)
-  // 9x9 grid   -> 4-8 wire pairs (8-16 ports)
+  // 5x5 grid   -> 3-4 wire pairs (6-8 ports)
+  // 6x6 grid   -> 4-6 wire pairs (8-12 ports)
+  // 7x7 grid   -> 5-8 wire pairs (10-16 ports)
+  // 8x8 grid   -> 6-11 wire pairs (12-22 ports)
+  // 9x9 grid   -> 6-13 wire pairs (12-26 ports)
 
   // Define min and max wire counts for each grid size
   let minWires: number;
@@ -313,24 +313,24 @@ export const getGeneratorConfig = (level: number): GeneratorConfig => {
       maxWires = 3;
       break;
     case 5:
-      minWires = 2;
+      minWires = 3;
       maxWires = 4;
       break;
     case 6:
-      minWires = 3;
-      maxWires = 5;
-      break;
-    case 7:
-      minWires = 3;
+      minWires = 4;
       maxWires = 6;
       break;
+    case 7:
+      minWires = 5;
+      maxWires = 8;
+      break;
     case 8:
-      minWires = 4;
-      maxWires = 7;
+      minWires = 6;
+      maxWires = 11;
       break;
     case 9:
-      minWires = 4;
-      maxWires = 8;
+      minWires = 6;
+      maxWires = 13;
       break;
     default:
       minWires = Math.ceil(gridSize / 2);
