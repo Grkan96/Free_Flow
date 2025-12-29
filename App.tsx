@@ -1516,10 +1516,12 @@ const styles = StyleSheet.create({
     elevation: 8,
     borderWidth: 2,
     borderColor: '#2a2a2a',
+    alignSelf: 'center',
   },
   gridRow: {
     flexDirection: 'row',
     flex: 1,
+    justifyContent: 'center',
   },
   gridCell: {
     position: 'relative',
