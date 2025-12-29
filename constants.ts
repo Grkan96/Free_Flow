@@ -32,15 +32,16 @@ export const calculateCellSize = (gridSize: number, gridRows?: number, gridCols?
 
   const availableWidth = SCREEN_WIDTH - padding;
 
-  // CRITICAL: For rectangular grids, calculate size ONLY based on width
-  // This ensures cells are perfect squares (equal width and height)
-  // The grid will extend vertically based on row count
-  const cellSizeByWidth = availableWidth / cols;
+  // CRITICAL: Calculate size based on width to ensure PERFECT SQUARE CELLS
+  // All cells (in all grids - square or rectangular) will be equal squares
+  // The grid extends vertically based on row count
+  const cellSize = availableWidth / cols;
 
   // Gap between cells
   const gap = isRectangular ? 0.5 : (gridSize >= 6 ? 1 : 1.5);
 
-  return Math.floor(cellSizeByWidth - gap);
+  // Return cell size minus gap (cell size is ALWAYS square)
+  return Math.floor(cellSize - gap);
 };
 
 // Animation durations
