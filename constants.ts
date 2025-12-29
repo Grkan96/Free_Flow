@@ -13,17 +13,21 @@ export const SCREEN_DIMENSIONS = {
 // Responsive cell size calculation with optimization for large grids
 export const calculateCellSize = (gridSize: number): number => {
   // Padding configuration based on grid size
+  // Minimize padding for larger grids to maximize playable area
   let padding: number;
 
-  if (gridSize >= 8) {
-    // Very large grids: minimal padding
-    padding = 40; // 20px on each side
+  if (gridSize >= 9) {
+    // 9x9 grids: ultra-minimal padding for maximum space
+    padding = 24; // 12px on each side
+  } else if (gridSize >= 8) {
+    // 8x8 grids: very minimal padding
+    padding = 32; // 16px on each side
   } else if (gridSize >= 6) {
-    // Medium-large grids: balanced padding
-    padding = 48; // 24px on each side
+    // 6x6-7x7 grids: minimal padding
+    padding = 40; // 20px on each side
   } else {
     // Small grids: normal padding
-    padding = 64; // 32px on each side
+    padding = 56; // 28px on each side
   }
 
   const availableWidth = SCREEN_WIDTH - padding;
@@ -32,8 +36,17 @@ export const calculateCellSize = (gridSize: number): number => {
   // All cells are perfect squares
   const cellSize = availableWidth / gridSize;
 
-  // Gap between cells (smaller for larger grids)
-  const gap = gridSize >= 8 ? 0.5 : (gridSize >= 6 ? 1 : 1.5);
+  // Gap between cells (very small for large grids to maximize touch area)
+  let gap: number;
+  if (gridSize >= 9) {
+    gap = 0.3; // Almost no gap for 9x9
+  } else if (gridSize >= 8) {
+    gap = 0.4; // Minimal gap for 8x8
+  } else if (gridSize >= 6) {
+    gap = 0.8; // Small gap for 6x6-7x7
+  } else {
+    gap = 1.2; // Normal gap for small grids
+  }
 
   // Return cell size minus gap (cell size is ALWAYS square)
   return Math.floor(cellSize - gap);
