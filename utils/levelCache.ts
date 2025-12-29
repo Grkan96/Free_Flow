@@ -35,7 +35,7 @@ class LevelCache {
    */
   async getLevel(difficulty: Difficulty, levelNumber: number = 1): Promise<LevelData> {
     // CACHE VERSION: Increment this to invalidate old cache when generation logic changes
-    const CACHE_VERSION = 'v41'; // v41: Square cells for rectangular grids (7x10, 8x10)
+    const CACHE_VERSION = 'v42'; // v42: Horizontal rectangular grids (7 rows × 10 cols)
     const cacheKey = `${CACHE_VERSION}-${difficulty}-${levelNumber}`;
 
     // Check if level is already cached
@@ -78,7 +78,7 @@ class LevelCache {
   private preGenerateNextLevels(currentLevel: number): void {
     // Don't await - run in background
     setTimeout(() => {
-      const CACHE_VERSION = 'v41'; // Must match getLevel version
+      const CACHE_VERSION = 'v42'; // Must match getLevel version
       for (let i = 1; i <= 2; i++) {
         const nextLevel = currentLevel + i;
         if (nextLevel <= 300) {
