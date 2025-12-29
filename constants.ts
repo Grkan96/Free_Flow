@@ -240,7 +240,7 @@ export const getGeneratorConfig = (level: number): GeneratorConfig => {
   // GRID SIZE PROGRESSION - EXPONENTIAL GROWTH
   // ============================================
   // Grid grows based on level ranges with exponential spacing
-  // Square grids until 7x7, then rectangular grids (horizontal) for better UX
+  // Square grids until 7x7, then rectangular grids for better UX
   //
   // Level 1-2:     2x2    (2 levels)   - Tutorial
   // Level 3-6:     3x3    (4 levels)   - Easy
@@ -248,8 +248,8 @@ export const getGeneratorConfig = (level: number): GeneratorConfig => {
   // Level 15-30:   5x5    (16 levels)  - Getting comfortable
   // Level 31-62:   6x6    (32 levels)  - Medium challenge
   // Level 63-126:  7x7    (64 levels)  - Getting harder
-  // Level 127-254: 7x10   (128 levels) - Hard (7 rows × 10 cols - horizontal)
-  // Level 255-300: 8x10   (46 levels)  - Expert (8 rows × 10 cols - horizontal)
+  // Level 127-254: 7x10   (128 levels) - Hard (rectangular)
+  // Level 255-300: 8x10   (46 levels)  - Expert (rectangular)
 
   let gridSize: number;
   let gridRows: number | undefined;
@@ -268,15 +268,15 @@ export const getGeneratorConfig = (level: number): GeneratorConfig => {
   } else if (level <= 126) {
     gridSize = 7;
   } else if (level <= 254) {
-    // 7x10 rectangular grid (7 rows × 10 cols - horizontal layout)
+    // 7x10 rectangular grid
     gridSize = 7; // Keep for compatibility
-    gridRows = 7;
-    gridCols = 10;
+    gridRows = 10;
+    gridCols = 7;
   } else {
-    // 8x10 rectangular grid (8 rows × 10 cols - horizontal layout)
+    // 8x10 rectangular grid
     gridSize = 8; // Keep for compatibility
-    gridRows = 8;
-    gridCols = 10;
+    gridRows = 10;
+    gridCols = 8;
   }
 
   // ============================================
@@ -292,8 +292,8 @@ export const getGeneratorConfig = (level: number): GeneratorConfig => {
   // 5x5 grid   -> 3 wire pairs (6 ports)
   // 6x6 grid   -> 3 wire pairs (6 ports)
   // 7x7 grid   -> 4 wire pairs (8 ports)
-  // 7x10 grid  -> 5 wire pairs (10 ports)
-  // 8x10 grid  -> 5 wire pairs (10 ports)
+  // 7x10 grid  -> 4 wire pairs (8 ports)
+  // 8x10 grid  -> 4 wire pairs (8 ports)
 
   const cols = gridCols || gridSize;
   const wireCount = Math.ceil(cols / 2);
