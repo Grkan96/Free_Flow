@@ -1533,6 +1533,9 @@ const App: React.FC = () => {
           <ShopModal
             visible={isShopVisible}
             onClose={handleCloseShop}
+            userProfile={userProfile}
+            purchasedThemes={purchasedThemes}
+            onThemePurchase={handleThemePurchase}
           />
 
           {/* Messages Modal */}
