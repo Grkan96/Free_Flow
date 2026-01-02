@@ -3,7 +3,7 @@
 import React, { useEffect, useRef } from 'react';
 import { View, StyleSheet, Animated } from 'react-native';
 import { CellData, CellState } from '../types';
-import { WIRE_COLORS } from '../constants';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface WireCellProps {
   data: CellData | null;
@@ -25,6 +25,7 @@ const WireCell: React.FC<WireCellProps> = ({
   hasLeft = false,
   hasRight = false
 }) => {
+  const { colors } = useTheme();
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
   // Pulse animation when drawing starts from this port
@@ -46,17 +47,19 @@ const WireCell: React.FC<WireCellProps> = ({
   }, [isDrawing, data?.isPort, pulseAnim]);
 
   if (!data) {
-    return <View style={styles.cell} />;
+    return <View style={[styles.cell, { backgroundColor: colors.cellEmpty, borderColor: colors.cellBorder }]} />;
   }
 
-  const cellColor = data.color ? WIRE_COLORS[data.color] : '#ffffff';
+  // Use theme wire colors
+  const wireColors = colors.wireColors || [];
+  const cellColor = data.color !== undefined && wireColors[data.color] ? wireColors[data.color] : colors.primary;
 
   // Obstacle cell
   if (data.isObstacle || data.state === CellState.OBSTACLE) {
     return (
-      <View style={styles.cell}>
-        <View style={styles.obstacle}>
-          <View style={styles.obstacleInner} />
+      <View style={[styles.cell, { backgroundColor: colors.cellEmpty, borderColor: colors.cellBorder }]}>
+        <View style={[styles.obstacle, { backgroundColor: colors.backgroundTertiary, borderColor: colors.border }]}>
+          <View style={[styles.obstacleInner, { backgroundColor: colors.backgroundSecondary }]} />
         </View>
       </View>
     );
@@ -65,7 +68,7 @@ const WireCell: React.FC<WireCellProps> = ({
   // Port cell (endpoint)
   if (data.isPort) {
     return (
-      <View style={styles.cell}>
+      <View style={[styles.cell, { backgroundColor: colors.cellEmpty, borderColor: colors.cellBorder }]}>
         {/* Draw wire connections to port */}
         {hasTop && (
           <View style={[styles.wireSegmentVertical, styles.wireTop, { backgroundColor: cellColor }]} />
@@ -96,7 +99,7 @@ const WireCell: React.FC<WireCellProps> = ({
   // Wire path cell
   if (data.state === CellState.PATH || isDrawing) {
     return (
-      <View style={styles.cell}>
+      <View style={[styles.cell, { backgroundColor: colors.cellEmpty, borderColor: colors.cellBorder }]}>
         {/* Vertical segments */}
         {hasTop && (
           <View style={[styles.wireSegmentVertical, styles.wireTop, { backgroundColor: cellColor }]} />
@@ -120,16 +123,14 @@ const WireCell: React.FC<WireCellProps> = ({
   }
 
   // Empty cell
-  return <View style={styles.cell} />;
+  return <View style={[styles.cell, { backgroundColor: colors.cellEmpty, borderColor: colors.cellBorder }]} />;
 };
 
 const styles = StyleSheet.create({
   cell: {
     width: '100%',
     height: '100%',
-    backgroundColor: '#1a1a1a',
     borderWidth: 1,
-    borderColor: '#333333',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -191,17 +192,14 @@ const styles = StyleSheet.create({
   obstacle: {
     width: '80%',
     height: '80%',
-    backgroundColor: '#2a2a2a',
     borderRadius: 4,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: '#444444',
   },
   obstacleInner: {
     width: '60%',
     height: '60%',
-    backgroundColor: '#3a3a3a',
     borderRadius: 2,
   },
 });
