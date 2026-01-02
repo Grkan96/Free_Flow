@@ -1,7 +1,8 @@
-// Theme Context - Light/Dark Mode Support
+// Theme Context - Enhanced Theme System with Multiple Themes
 
 import React, { createContext, useContext, ReactNode } from 'react';
 import { AppSettings } from '../types';
+import { THEMES, Theme, getThemeById } from '../constants/themes';
 
 interface ThemeColors {
   // Background colors
@@ -12,95 +13,89 @@ interface ThemeColors {
   // Text colors
   text: string;
   textSecondary: string;
-  textTertiary: string;
+  textTertiary?: string;
 
   // UI colors
   primary: string;
+  secondary?: string;
   border: string;
-  shadow: string;
+  shadow?: string;
   overlay: string;
 
   // Game colors
-  gridBackground: string;
+  gridBackground?: string;
   cellEmpty: string;
-  cellEndpoint: string;
-  cellPath: string;
+  cellEndpoint?: string;
+  cellPath?: string;
+  cellBorder?: string;
 
   // Button colors
   buttonBackground: string;
   buttonText: string;
-  buttonDisabled: string;
+  buttonDisabled?: string;
+
+  // Wire colors
+  wireColors?: string[];
 }
 
-const darkTheme: ThemeColors = {
-  background: '#0a0a0a',
-  backgroundSecondary: '#1a1a1a',
-  backgroundTertiary: '#2a2a2a',
-
-  text: '#ffffff',
-  textSecondary: '#808080',
-  textTertiary: '#6b7280',
-
-  primary: '#10b981',
-  border: '#2a2a2a',
-  shadow: 'rgba(0, 0, 0, 0.5)',
-  overlay: 'rgba(0, 0, 0, 0.92)',
-
-  gridBackground: '#1a1a1a',
-  cellEmpty: '#2a2a2a',
-  cellEndpoint: '#10b981',
-  cellPath: '#00ff41',
-
-  buttonBackground: '#0a0a0a',
-  buttonText: '#ffffff',
-  buttonDisabled: '#3a3a3a',
-};
-
-const lightTheme: ThemeColors = {
-  background: '#ffffff',
-  backgroundSecondary: '#f5f5f5',
-  backgroundTertiary: '#e5e5e5',
-
-  text: '#000000',
-  textSecondary: '#666666',
-  textTertiary: '#999999',
-
-  primary: '#10b981',
-  border: '#d1d5db',
-  shadow: 'rgba(0, 0, 0, 0.1)',
-  overlay: 'rgba(0, 0, 0, 0.5)',
-
-  gridBackground: '#f5f5f5',
-  cellEmpty: '#e5e5e5',
-  cellEndpoint: '#10b981',
-  cellPath: '#00cc33',
-
-  buttonBackground: '#ffffff',
-  buttonText: '#000000',
-  buttonDisabled: '#d1d5db',
+// Convert new theme format to context format
+const convertThemeColors = (theme: Theme): ThemeColors => {
+  return {
+    ...theme.colors,
+    textTertiary: theme.colors.textSecondary,
+    gridBackground: theme.colors.background,
+    cellEndpoint: theme.colors.primary,
+    cellPath: theme.colors.primary,
+    shadow: 'rgba(0, 0, 0, 0.5)',
+    buttonDisabled: theme.colors.backgroundTertiary,
+  };
 };
 
 interface ThemeContextType {
   colors: ThemeColors;
   isDark: boolean;
+  currentTheme: Theme;
+  themeId: string;
 }
 
+const defaultTheme = THEMES.classic;
+
 const ThemeContext = createContext<ThemeContextType>({
-  colors: darkTheme,
+  colors: convertThemeColors(defaultTheme),
   isDark: true,
+  currentTheme: defaultTheme,
+  themeId: 'classic',
 });
 
 interface ThemeProviderProps {
   children: ReactNode;
   settings: AppSettings;
+  themeId?: string; // Optional theme ID override
 }
 
-export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children, settings }) => {
-  const isDark = settings.theme === 'dark';
-  const colors = isDark ? darkTheme : lightTheme;
+export const ThemeProvider: React.FC<ThemeProviderProps> = ({
+  children,
+  settings,
+  themeId
+}) => {
+  // Use themeId if provided, otherwise fall back to settings.theme
+  let activeThemeId = themeId || 'classic';
+
+  // Map old dark/light to new theme IDs
+  if (!themeId) {
+    if (settings.theme === 'light') {
+      activeThemeId = 'light';
+    } else {
+      activeThemeId = 'classic';
+    }
+  }
+
+  const currentTheme = getThemeById(activeThemeId);
+  const colors = convertThemeColors(currentTheme);
+  const isDark = activeThemeId !== 'light';
 
   return (
-    <ThemeContext.Provider value={{ colors, isDark }}>
+    <ThemeContext.Provider value={{ colors, isDark, currentTheme, themeId: activeThemeId }}>
       {children}
     </ThemeContext.Provider>
   );

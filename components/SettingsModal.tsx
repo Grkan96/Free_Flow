@@ -19,6 +19,7 @@ interface SettingsModalProps {
   settings: AppSettings;
   onClose: () => void;
   onSettingsChange: (settings: AppSettings) => void;
+  onOpenThemes?: () => void;
 }
 
 const SettingsModal: React.FC<SettingsModalProps> = ({
@@ -26,6 +27,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
   settings,
   onClose,
   onSettingsChange,
+  onOpenThemes,
 }) => {
   const { colors } = useTheme();
   const { t } = useTranslation();
@@ -168,6 +170,28 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                 </TouchableOpacity>
               </View>
             </View>
+
+            {/* Visual Themes */}
+            {onOpenThemes && (
+              <TouchableOpacity
+                style={[styles.settingRow, { borderBottomColor: colors.border }]}
+                onPress={onOpenThemes}
+                activeOpacity={0.7}
+              >
+                <View style={styles.settingLeft}>
+                  <View style={[styles.iconContainer, { backgroundColor: colors.background }]}>
+                    <Text style={styles.iconEmoji}>🎨</Text>
+                  </View>
+                  <View style={styles.settingText}>
+                    <Text style={[styles.settingTitle, { color: colors.text }]}>Visual Themes</Text>
+                    <Text style={[styles.settingSubtitle, { color: colors.textSecondary }]}>
+                      Customize colors and effects
+                    </Text>
+                  </View>
+                </View>
+                <Text style={[styles.arrowIcon, { color: colors.textSecondary }]}>›</Text>
+              </TouchableOpacity>
+            )}
 
             {/* Language */}
             <View style={[styles.settingRow, { borderBottomColor: colors.border }]}>
@@ -312,6 +336,10 @@ const styles = StyleSheet.create({
   },
   themeButtonText: {
     fontSize: 20,
+  },
+  arrowIcon: {
+    fontSize: 24,
+    fontWeight: '300',
   },
   languageButtons: {
     flexDirection: 'row',

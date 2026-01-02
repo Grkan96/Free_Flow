@@ -7,11 +7,12 @@ import { levelCache } from './levelCache';
 /**
  * Initialize an empty grid
  */
-export const createEmptyGrid = (size: number): Grid => {
+export const createEmptyGrid = (rows: number, cols?: number): Grid => {
+  const numCols = cols || rows; // If cols not provided, create square grid
   const grid: Grid = [];
-  for (let row = 0; row < size; row++) {
+  for (let row = 0; row < rows; row++) {
     const gridRow: (CellData | null)[] = [];
-    for (let col = 0; col < size; col++) {
+    for (let col = 0; col < numCols; col++) {
       gridRow.push({
         row,
         col,
@@ -36,8 +37,10 @@ export const loadLevel = async (levelId: number): Promise<{ grid: Grid; wires: W
   // Get level from cache (or generate new one)
   const levelData = await levelCache.getLevel(difficulty, levelId);
 
-  const size = levelData.config.size;
-  const grid = createEmptyGrid(size);
+  // Support both square and rectangular grids
+  const rows = levelData.config.rows || levelData.config.size;
+  const cols = levelData.config.cols || levelData.config.size;
+  const grid = createEmptyGrid(rows, cols);
   const wires: Wire[] = [];
 
   // Place obstacles (if any)
@@ -57,7 +60,8 @@ export const loadLevel = async (levelId: number): Promise<{ grid: Grid; wires: W
   // FREEDOM: Player can use any cell - no restrictions
   // We trust the Hamiltonian path generation to create solvable puzzles
   // Player has full freedom to find their own solution
-  console.log(`[LoadLevel ${levelId}] Grid=${size}x${size} (${size * size} cells), Wires=${levelData.wires.length}, Freedom=FULL`);
+  const totalCells = rows * cols;
+  console.log(`[LoadLevel ${levelId}] Grid=${cols}x${rows} (${totalCells} cells), Wires=${levelData.wires.length}, Freedom=FULL`);
 
   // Place ports (endpoints) on grid
   levelData.wires.forEach((wireData, index) => {

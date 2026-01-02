@@ -35,9 +35,11 @@ import MessagesModal from './components/MessagesModal';
 import PauseMenu from './components/PauseMenu';
 // Class selection removed - using progressive difficulty
 import LevelCompleteModal from './components/LevelCompleteModal';
+import ThemeSelectionModal from './components/ThemeSelectionModal';
 import { AdBanner } from './components/AdBanner';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { LanguageProvider, useTranslation } from './contexts/LanguageContext';
+import { loadThemePreferences, saveThemePreferences, purchaseTheme as purchaseThemeStorage } from './utils/themeStorage';
 
 const { width, height } = Dimensions.get('window');
 
@@ -82,6 +84,11 @@ const App: React.FC = () => {
   const [settingsLoaded, setSettingsLoaded] = useState(false);
   const [isSettingsVisible, setIsSettingsVisible] = useState(false);
 
+  // Theme state
+  const [currentThemeId, setCurrentThemeId] = useState<string>('classic');
+  const [purchasedThemes, setPurchasedThemes] = useState<string[]>(['classic']);
+  const [isThemeSelectionVisible, setIsThemeSelectionVisible] = useState(false);
+
   // Profile & Stats state
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [globalStats, setGlobalStats] = useState<GlobalStats | null>(null);
@@ -122,6 +129,14 @@ const App: React.FC = () => {
     loadSettings().then(loadedSettings => {
       setSettings(loadedSettings);
       setSettingsLoaded(true);
+    });
+  }, []);
+
+  // Load theme preferences on mount
+  useEffect(() => {
+    loadThemePreferences().then(prefs => {
+      setCurrentThemeId(prefs.currentTheme);
+      setPurchasedThemes(prefs.purchasedThemes);
     });
   }, []);
 
@@ -351,6 +366,58 @@ const App: React.FC = () => {
     }
   }, []);
 
+  // Theme handlers
+  const handleOpenThemeSelection = useCallback(() => {
+    setIsThemeSelectionVisible(true);
+  }, []);
+
+  const handleCloseThemeSelection = useCallback(() => {
+    setIsThemeSelectionVisible(false);
+  }, []);
+
+  const handleThemeSelect = useCallback(async (themeId: string) => {
+    setCurrentThemeId(themeId);
+    try {
+      await saveThemePreferences({
+        currentTheme: themeId,
+        purchasedThemes,
+      });
+    } catch (error) {
+      console.error('Failed to save theme preference:', error);
+    }
+  }, [purchasedThemes]);
+
+  const handleThemePurchase = useCallback(async (themeId: string, price: number) => {
+    if (!userProfile || userProfile.coins < price) {
+      console.warn('Not enough coins to purchase theme');
+      return;
+    }
+
+    try {
+      // Deduct coins from user
+      const updatedProfile = {
+        ...userProfile,
+        coins: userProfile.coins - price,
+      };
+      await saveUserProfile(updatedProfile);
+      setUserProfile(updatedProfile);
+
+      // Add theme to purchased list
+      await purchaseThemeStorage(themeId);
+      const newPurchasedThemes = [...purchasedThemes, themeId];
+      setPurchasedThemes(newPurchasedThemes);
+
+      // Activate the newly purchased theme
+      setCurrentThemeId(themeId);
+      await saveThemePreferences({
+        currentTheme: themeId,
+        purchasedThemes: newPurchasedThemes,
+      });
+    } catch (error) {
+      console.error('Failed to purchase theme:', error);
+    }
+  }, [userProfile, purchasedThemes]);
+
   // Stats handlers
   const handleShowStats = useCallback(async () => {
     try {
@@ -393,7 +460,7 @@ const App: React.FC = () => {
     // Close modal and start the level
     // NOTE: We don't update currentLevel here - only when completing levels
     // This allows users to replay previous levels without losing progress
-    setIsClassSelectionVisible(false);
+    // setIsClassSelectionVisible(false); // Removed: class selection no longer used
     await startLevel(level);
   }, [startLevel]);
 
@@ -1188,7 +1255,7 @@ const App: React.FC = () => {
   }
 
   return (
-    <ThemeProvider settings={settings}>
+    <ThemeProvider settings={settings} themeId={currentThemeId}>
       <LanguageProvider settings={settings}>
         <View style={styles.container}>
           <StatusBar style={settings.theme === 'dark' ? 'light' : 'dark'} />
@@ -1427,6 +1494,18 @@ const App: React.FC = () => {
             settings={settings}
             onClose={handleCloseSettings}
             onSettingsChange={handleSettingsChange}
+            onOpenThemes={handleOpenThemeSelection}
+          />
+
+          {/* Theme Selection Modal */}
+          <ThemeSelectionModal
+            visible={isThemeSelectionVisible}
+            onClose={handleCloseThemeSelection}
+            userProfile={userProfile}
+            currentThemeId={currentThemeId}
+            purchasedThemes={purchasedThemes}
+            onThemeSelect={handleThemeSelect}
+            onThemePurchase={handleThemePurchase}
           />
 
           {/* Profile Modal */}
