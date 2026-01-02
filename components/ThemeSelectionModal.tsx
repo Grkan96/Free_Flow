@@ -51,6 +51,11 @@ const ThemeSelectionModal: React.FC<ThemeSelectionModalProps> = ({
   const userLevel = userProfile?.currentLevel || 1;
   const userCoins = userProfile?.coins || 0;
 
+  // Calculate unlocked themes count
+  const unlockedThemesCount = themes.filter(theme =>
+    isThemeUnlocked(theme, userLevel, userCoins, purchasedThemes)
+  ).length;
+
   // Reset preview when modal opens
   useEffect(() => {
     if (visible) {
@@ -180,9 +185,9 @@ const ThemeSelectionModal: React.FC<ThemeSelectionModalProps> = ({
               <Text style={[styles.statValue, { color: colors.primary }]}>{userCoins} 💰</Text>
             </View>
             <View style={styles.statBox}>
-              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Themes</Text>
+              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Unlocked</Text>
               <Text style={[styles.statValue, { color: colors.primary }]}>
-                {purchasedThemes.length}/{themes.length}
+                {unlockedThemesCount}/{themes.length}
               </Text>
             </View>
           </View>
