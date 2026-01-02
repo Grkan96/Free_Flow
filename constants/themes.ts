@@ -232,9 +232,9 @@ export const THEMES: Record<string, Theme> = {
     icon: '☀️',
     description: 'Bright and clean theme',
     descriptionKey: 'themes.light.description',
-    unlockLevel: 10,
-    price: 0,
-    requirementType: 'level',
+    unlockLevel: 0,
+    price: 0, // Test: 0 coins (will be priced later)
+    requirementType: 'coins',
     colors: {
       background: '#ffffff',
       backgroundSecondary: '#f8f9fa',
@@ -269,7 +269,7 @@ export const THEMES: Record<string, Theme> = {
     description: 'Vibrant neon with glow effects',
     descriptionKey: 'themes.neon.description',
     unlockLevel: 0,
-    price: 1000,
+    price: 0, // Test: 0 coins (will be priced later)
     requirementType: 'coins',
     colors: {
       background: '#000000',
@@ -306,9 +306,9 @@ export const THEMES: Record<string, Theme> = {
     icon: '🌊',
     description: 'Deep blue underwater theme',
     descriptionKey: 'themes.ocean.description',
-    unlockLevel: 25,
-    price: 0,
-    requirementType: 'level',
+    unlockLevel: 0,
+    price: 0, // Test: 0 coins (will be priced later)
+    requirementType: 'coins',
     colors: {
       background: '#001f3f',
       backgroundSecondary: '#002b4f',
@@ -343,7 +343,7 @@ export const THEMES: Record<string, Theme> = {
     description: 'Warm sunset colors',
     descriptionKey: 'themes.sunset.description',
     unlockLevel: 0,
-    price: 1500,
+    price: 0, // Test: 0 coins (will be priced later)
     requirementType: 'coins',
     colors: {
       background: '#2c1810',
@@ -380,9 +380,9 @@ export const THEMES: Record<string, Theme> = {
     icon: '🌲',
     description: 'Natural green forest theme',
     descriptionKey: 'themes.forest.description',
-    unlockLevel: 50,
-    price: 0,
-    requirementType: 'level',
+    unlockLevel: 0,
+    price: 0, // Test: 0 coins (will be priced later)
+    requirementType: 'coins',
     colors: {
       background: '#1a3a1a',
       backgroundSecondary: '#254d25',
@@ -417,7 +417,7 @@ export const THEMES: Record<string, Theme> = {
     description: 'Mystical purple gradients',
     descriptionKey: 'themes.purple.description',
     unlockLevel: 0,
-    price: 2000,
+    price: 0, // Test: 0 coins (will be priced later)
     requirementType: 'coins',
     colors: {
       background: '#1a0033',
@@ -454,9 +454,9 @@ export const THEMES: Record<string, Theme> = {
     icon: '🌸',
     description: 'Soft pink cherry blossom theme',
     descriptionKey: 'themes.cherry.description',
-    unlockLevel: 75,
-    price: 0,
-    requirementType: 'level',
+    unlockLevel: 0,
+    price: 0, // Test: 0 coins (will be priced later)
+    requirementType: 'coins',
     colors: {
       background: '#fff5f7',
       backgroundSecondary: '#ffe4e9',
