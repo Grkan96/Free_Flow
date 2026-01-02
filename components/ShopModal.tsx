@@ -32,6 +32,7 @@ const ShopModal: React.FC<ShopModalProps> = ({
 }) => {
   const { colors } = useTheme();
   const { t } = useTranslation();
+  const [isThemesExpanded, setIsThemesExpanded] = React.useState(false);
 
   const allThemes = getAvailableThemes();
   const userLevel = userProfile?.currentLevel || 1;
@@ -86,9 +87,18 @@ const ShopModal: React.FC<ShopModalProps> = ({
 
             {/* Themes Section */}
             <View style={styles.themesSection}>
-              <Text style={[styles.sectionTitle, { color: colors.primary }]}>🎨 Premium Themes</Text>
+              <TouchableOpacity
+                style={[styles.sectionHeader, { borderColor: colors.border }]}
+                onPress={() => setIsThemesExpanded(!isThemesExpanded)}
+                activeOpacity={0.7}
+              >
+                <Text style={[styles.sectionTitle, { color: colors.primary }]}>🎨 Premium Themes</Text>
+                <Text style={[styles.expandIcon, { color: colors.textSecondary }]}>
+                  {isThemesExpanded ? '▼' : '▶'}
+                </Text>
+              </TouchableOpacity>
 
-              {shopThemes.map(theme => {
+              {isThemesExpanded && shopThemes.map(theme => {
                 const isUnlocked = isThemeUnlocked(theme, userLevel, userCoins, purchasedThemes);
                 const canAfford = userCoins >= theme.price;
 
@@ -240,11 +250,23 @@ const styles = StyleSheet.create({
   themesSection: {
     marginBottom: 20,
   },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    marginBottom: 12,
+  },
   sectionTitle: {
     fontSize: 16,
     fontWeight: '700',
-    marginBottom: 16,
     letterSpacing: 0.5,
+  },
+  expandIcon: {
+    fontSize: 14,
+    fontWeight: '700',
   },
   themeCard: {
     flexDirection: 'row',
