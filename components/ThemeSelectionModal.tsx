@@ -12,9 +12,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
-import { useTranslation } from '../contexts/LanguageContext';
 import {
-  THEMES,
   Theme,
   isThemeUnlocked,
   getThemeUnlockText,
@@ -44,17 +42,19 @@ const ThemeSelectionModal: React.FC<ThemeSelectionModalProps> = ({
   onThemePurchase,
 }) => {
   const { colors } = useTheme();
-  const { t } = useTranslation();
   const [selectedPreview, setSelectedPreview] = useState<string>(currentThemeId);
 
   const themes = getAvailableThemes();
   const userLevel = userProfile?.currentLevel || 1;
   const userCoins = userProfile?.coins || 0;
 
-  // Calculate unlocked themes count
-  const unlockedThemesCount = themes.filter(theme =>
+  // Show only purchased/unlocked themes (filter for owned themes only)
+  const ownedThemes = themes.filter(theme =>
     isThemeUnlocked(theme, userLevel, userCoins, purchasedThemes)
-  ).length;
+  );
+
+  // Calculate unlocked themes count
+  const unlockedThemesCount = ownedThemes.length;
 
   // Reset preview when modal opens
   useEffect(() => {
@@ -194,13 +194,27 @@ const ThemeSelectionModal: React.FC<ThemeSelectionModalProps> = ({
 
           {/* Themes List */}
           <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-            <View style={styles.themesContainer}>{themes.map(renderThemeCard)}</View>
+            <View style={styles.themesContainer}>
+              {ownedThemes.length > 0 ? (
+                ownedThemes.map(renderThemeCard)
+              ) : (
+                <View style={styles.emptyState}>
+                  <Text style={[styles.emptyIcon, { color: colors.textSecondary }]}>🎨</Text>
+                  <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
+                    No themes owned yet
+                  </Text>
+                  <Text style={[styles.emptySubtext, { color: colors.textSecondary }]}>
+                    Visit the Shop to purchase themes
+                  </Text>
+                </View>
+              )}
+            </View>
           </ScrollView>
 
           {/* Footer */}
           <View style={[styles.footer, { borderTopColor: colors.border }]}>
             <Text style={[styles.footerText, { color: colors.textSecondary }]}>
-              💡 Earn coins by completing levels
+              💡 Purchase themes from the Shop
             </Text>
           </View>
         </View>
@@ -322,6 +336,24 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     shadowOffset: { width: 0, height: 2 },
     elevation: 3,
+  },
+  emptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 60,
+  },
+  emptyIcon: {
+    fontSize: 64,
+    marginBottom: 16,
+  },
+  emptyText: {
+    fontSize: 16,
+    fontWeight: '700',
+    marginBottom: 8,
+  },
+  emptySubtext: {
+    fontSize: 13,
+    textAlign: 'center',
   },
   footer: {
     padding: 16,

@@ -52,7 +52,18 @@ const WireCell: React.FC<WireCellProps> = ({
 
   // Use theme wire colors
   const wireColors = colors.wireColors || [];
-  const cellColor = data.color !== undefined && wireColors[data.color] ? wireColors[data.color] : colors.primary;
+
+  // Map wire color string to theme color index
+  // Each unique wire gets a unique color from the theme palette
+  const getColorForWire = (wireColor: string | null): string => {
+    if (!wireColor) return colors.primary;
+
+    // Create a simple hash from the wire color string to get a consistent index
+    const colorIndex = wireColor.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % wireColors.length;
+    return wireColors[colorIndex] || colors.primary;
+  };
+
+  const cellColor = getColorForWire(data.color);
 
   // Obstacle cell
   if (data.isObstacle || data.state === CellState.OBSTACLE) {
