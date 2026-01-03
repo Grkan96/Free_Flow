@@ -211,6 +211,13 @@ const ThemeSelectionModal: React.FC<ThemeSelectionModalProps> = ({
             showsVerticalScrollIndicator={false}
           >
             <View style={styles.themesContainer}>
+              {/* DEBUG: Test card */}
+              <View style={[styles.themeCard, { backgroundColor: 'red', borderColor: 'yellow', marginBottom: 12 }]}>
+                <Text style={{ color: 'white', fontSize: 20, fontWeight: 'bold' }}>
+                  DEBUG TEST CARD - If you see this, rendering works!
+                </Text>
+              </View>
+
               {(() => {
                 console.log('RENDER CHECK - ownedThemes.length:', ownedThemes.length);
                 console.log('RENDER CHECK - Will show:', ownedThemes.length > 0 ? 'THEME CARDS' : 'EMPTY STATE');
