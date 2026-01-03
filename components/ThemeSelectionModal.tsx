@@ -205,7 +205,11 @@ const ThemeSelectionModal: React.FC<ThemeSelectionModalProps> = ({
           </View>
 
           {/* Themes List */}
-          <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+          <ScrollView
+            style={styles.scrollView}
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+          >
             <View style={styles.themesContainer}>
               {(() => {
                 console.log('RENDER CHECK - ownedThemes.length:', ownedThemes.length);
@@ -294,9 +298,13 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
   },
+  scrollContent: {
+    flexGrow: 1,
+    paddingBottom: 20,
+  },
   themesContainer: {
     padding: 16,
-    flexGrow: 1,
+    minHeight: 200,
   },
   themeCard: {
     borderRadius: 16,
