@@ -56,6 +56,12 @@ const ThemeSelectionModal: React.FC<ThemeSelectionModalProps> = ({
   // Calculate unlocked themes count
   const unlockedThemesCount = ownedThemes.length;
 
+  // Debug: Log owned themes
+  React.useEffect(() => {
+    console.log('ThemeSelectionModal - Purchased themes:', purchasedThemes);
+    console.log('ThemeSelectionModal - Owned themes:', ownedThemes.map(t => t.id));
+  }, [purchasedThemes, ownedThemes]);
+
   // Reset preview when modal opens
   useEffect(() => {
     if (visible) {

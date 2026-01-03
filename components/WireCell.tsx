@@ -98,7 +98,10 @@ const WireCell: React.FC<WireCellProps> = ({
             styles.port,
             {
               backgroundColor: cellColor,
-              transform: [{ scale: pulseAnim }]
+              transform: [{ scale: pulseAnim }],
+              // Add border for better visibility on light backgrounds
+              borderWidth: 2,
+              borderColor: colors.isDark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.15)',
             },
             isHint && styles.portHint,
           ]}
