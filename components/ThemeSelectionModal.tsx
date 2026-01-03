@@ -211,30 +211,41 @@ const ThemeSelectionModal: React.FC<ThemeSelectionModalProps> = ({
             showsVerticalScrollIndicator={false}
           >
             <View style={styles.themesContainer}>
-              {/* DEBUG: Test card */}
-              <View style={[styles.themeCard, { backgroundColor: 'red', borderColor: 'yellow', marginBottom: 12 }]}>
-                <Text style={{ color: 'white', fontSize: 20, fontWeight: 'bold' }}>
-                  DEBUG TEST CARD - If you see this, rendering works!
-                </Text>
-              </View>
-
-              {(() => {
-                console.log('RENDER CHECK - ownedThemes.length:', ownedThemes.length);
-                console.log('RENDER CHECK - Will show:', ownedThemes.length > 0 ? 'THEME CARDS' : 'EMPTY STATE');
-                return ownedThemes.length > 0 ? (
-                  ownedThemes.map(renderThemeCard)
-                ) : (
-                  <View style={styles.emptyState}>
-                    <Text style={[styles.emptyIcon, { color: colors.textSecondary }]}>🎨</Text>
-                    <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-                      No themes owned yet
-                    </Text>
-                    <Text style={[styles.emptySubtext, { color: colors.textSecondary }]}>
-                      Visit the Shop to purchase themes
+              {/* Simple direct rendering - no conditionals, no functions */}
+              {ownedThemes.map((theme, index) => (
+                <TouchableOpacity
+                  key={theme.id}
+                  style={[
+                    styles.themeCard,
+                    { backgroundColor: colors.backgroundSecondary, borderColor: colors.border },
+                    currentThemeId === theme.id && { borderColor: colors.primary, borderWidth: 3 },
+                  ]}
+                  onPress={() => {
+                    onThemeSelect(theme.id);
+                    onClose();
+                  }}
+                  activeOpacity={0.8}
+                >
+                  <View style={styles.themeIconContainer}>
+                    <Text style={styles.themeIcon}>{theme.icon}</Text>
+                  </View>
+                  <View style={styles.themeInfo}>
+                    <Text style={[styles.themeName, { color: colors.text }]}>{theme.name}</Text>
+                    <Text style={[styles.themeDescription, { color: colors.textSecondary }]}>
+                      {theme.description}
                     </Text>
                   </View>
-                );
-              })()}
+                </TouchableOpacity>
+              ))}
+
+              {ownedThemes.length === 0 && (
+                <View style={{ padding: 40, alignItems: 'center' }}>
+                  <Text style={{ fontSize: 48 }}>🎨</Text>
+                  <Text style={{ fontSize: 16, fontWeight: 'bold', marginTop: 16, color: colors.text }}>
+                    No themes yet
+                  </Text>
+                </View>
+              )}
             </View>
           </ScrollView>
 
