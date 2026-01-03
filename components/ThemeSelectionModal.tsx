@@ -49,9 +49,14 @@ const ThemeSelectionModal: React.FC<ThemeSelectionModalProps> = ({
   const userCoins = userProfile?.coins || 0;
 
   // Show only purchased/unlocked themes (filter for owned themes only)
-  const ownedThemes = themes.filter(theme =>
-    isThemeUnlocked(theme, userLevel, userCoins, purchasedThemes)
-  );
+  const ownedThemes = React.useMemo(() => {
+    const owned = themes.filter(theme =>
+      isThemeUnlocked(theme, userLevel, userCoins, purchasedThemes)
+    );
+    console.log('ThemeSelectionModal - Computing ownedThemes:', owned.map(t => t.id));
+    console.log('ThemeSelectionModal - ownedThemes.length:', owned.length);
+    return owned;
+  }, [themes, userLevel, userCoins, purchasedThemes]);
 
   // Calculate unlocked themes count
   const unlockedThemesCount = ownedThemes.length;
@@ -60,6 +65,7 @@ const ThemeSelectionModal: React.FC<ThemeSelectionModalProps> = ({
   React.useEffect(() => {
     console.log('ThemeSelectionModal - Purchased themes:', purchasedThemes);
     console.log('ThemeSelectionModal - Owned themes:', ownedThemes.map(t => t.id));
+    console.log('ThemeSelectionModal - Rendering with ownedThemes.length:', ownedThemes.length);
   }, [purchasedThemes, ownedThemes]);
 
   // Reset preview when modal opens
@@ -201,19 +207,23 @@ const ThemeSelectionModal: React.FC<ThemeSelectionModalProps> = ({
           {/* Themes List */}
           <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
             <View style={styles.themesContainer}>
-              {ownedThemes.length > 0 ? (
-                ownedThemes.map(renderThemeCard)
-              ) : (
-                <View style={styles.emptyState}>
-                  <Text style={[styles.emptyIcon, { color: colors.textSecondary }]}>🎨</Text>
-                  <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-                    No themes owned yet
-                  </Text>
-                  <Text style={[styles.emptySubtext, { color: colors.textSecondary }]}>
-                    Visit the Shop to purchase themes
-                  </Text>
-                </View>
-              )}
+              {(() => {
+                console.log('RENDER CHECK - ownedThemes.length:', ownedThemes.length);
+                console.log('RENDER CHECK - Will show:', ownedThemes.length > 0 ? 'THEME CARDS' : 'EMPTY STATE');
+                return ownedThemes.length > 0 ? (
+                  ownedThemes.map(renderThemeCard)
+                ) : (
+                  <View style={styles.emptyState}>
+                    <Text style={[styles.emptyIcon, { color: colors.textSecondary }]}>🎨</Text>
+                    <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
+                      No themes owned yet
+                    </Text>
+                    <Text style={[styles.emptySubtext, { color: colors.textSecondary }]}>
+                      Visit the Shop to purchase themes
+                    </Text>
+                  </View>
+                );
+              })()}
             </View>
           </ScrollView>
 
