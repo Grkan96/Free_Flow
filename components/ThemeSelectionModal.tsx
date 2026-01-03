@@ -296,7 +296,7 @@ const styles = StyleSheet.create({
   },
   themesContainer: {
     padding: 16,
-    gap: 12,
+    flexGrow: 1,
   },
   themeCard: {
     borderRadius: 16,
